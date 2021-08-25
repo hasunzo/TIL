@@ -2177,7 +2177,7 @@ public void save() {
 - 부모 엔티티를 보면 @JoinColumn 대신에 @JoinTable을 사용했다.
 - @JoinTable의 속성
   - name : 매핑할 조인 테이블 이름
-  - joinColumns : guswo dpsxlxlfmf ckawhgksms dhlfo zl
+  - joinColumns : 현재 엔티티를 참조하는 외래 키
   - inverseJoinColumns : 반대방향 엔티티를 참조하는 외래 키
   
 
@@ -2595,7 +2595,7 @@ Team team = member.getTeam();   //객체 그래프 탐색
 team.getName(); //팀 객체 실제 사용
 ```
 - 회원과 팀을 지연 로딩으로 설정함
-- em.find(Member.class, "member1")을 호출하면 회원만 조회하고 팀은 조회하지 안흥ㅁ
+- em.find(Member.class, "member1")을 호출하면 회원만 조회하고 팀은 조회하지 않음
 - team 멤버변수에 프록시 객체를 넣어둠.
 - 프록시 객체는 실제 사용될 때까지 데이터 로딩을 미룬다.
 - 실제 데이터가 필요한 순간이 되어서야 데이터베이스를 조회해서 프록시 객체를 초기화함.
@@ -2730,7 +2730,7 @@ parent.getChildren().add(child2); //부모 -> 자식
 em.persist(child2);
 ```
 
-###CASECADE 옵선 적용
+### CASECADE 옵선 적용
 ```java
 Child child1 = new Child();
 Child child2 = new Child();
@@ -2846,7 +2846,7 @@ parent.getChildren().remove(removeObject);
 - 객체를 조회할 때 연관된 객체를 즉시 로딩하는 방법을 즉시 로딩,
   - 연관된 객체를 지연해서 로딩하는 방법을 지연 로딩이라 함.
   
-- 객체를 저장하거나 삭제할 때 연관된 객체도 함꼐 저장하거나 삭제할 수 있음
+- 객체를 저장하거나 삭제할 때 연관된 객체도 함께 저장하거나 삭제할 수 있음
   - 영속성 전이
   
 - 부모 엔티티와 연관관계가 끊어진 자식 엔티티를 자동으로 삭제하려면?
@@ -2963,7 +2963,7 @@ parent.getChildren().remove(removeObject);
 - Period.isWork()처럼 해당 값 타입만 사용하는 의미 있는 메소드도 만들 수 있음.
 
 #### 임베디드 타입을 사용하기 위해 필요한 어노테이션
-- @Embeddable : 값 타입을 정의하는 곳에 ㅔ표시
+- @Embeddable : 값 타입을 정의하는 곳에 표시
 - @Embedded : 값 타입을 사용하는 곳에 표시
 
 - 임베디드 타입은 기본 생성자가 필수다.
@@ -3087,7 +3087,7 @@ CREATE TABLE MEMBER {
 ```
 - @AttributeOverride를 사용하면 엔티티 코드가 지저분해짐.
 - 다행히 한 엔티티에 같은 임베디드 타입을 중복해서 사용하는 일은 많지 않음.
-- 참고) @AttributeOverride는 엔티티에 설정해야 한다. 임베디드 타입이 임베디드 타입을 가지고 있어도 엔티티에 설정해얗 ㅏㅁ
+- 참고) @AttributeOverride는 엔티티에 설정해야 한다. 임베디드 타입이 임베디드 타입을 가지고 있어도 엔티티에 설정해야 한다.
 
 ### 9.2.4 임베디드 타입과 null
 - 임베디드 타입이 null이면 매핑한 컬럼 값은 모두 null이 된다.
@@ -3192,7 +3192,7 @@ Address b = new Address("서울시", "종로구", "1번지");
   - 물론 Address의 equals() 메소드를 재정의해야 한다.
   - 값 타입의 equals() 메소드를 재정의할 때는 보통 모든 필드의 값을 비교하도록 구현한다.
 
-- 참고) 자바에서 equals()를 재정의하면 hashCode()도 재정희하는 것이 안전함
+- 참고) 자바에서 equals()를 재정의하면 hashCode()도 재정의하는 것이 안전함
 - 그렇지 않으면 해시를 사용하는 컬렉션이 정상 동작하지 않음
 
 ## 9.5 값 타입 컬렉션
@@ -3247,7 +3247,7 @@ public class Address {
     - @Column을 사용하여 컬럼명을 지정할 수 있음
 
 - addressHistory는 임베디드 타입은 Address를 컬렉션으로 가짐
-- 이것도 마찬가지고 별도의 테이블을 사용
+- 이것도 마찬가지로 별도의 테이블을 사용
   - 그리고 테이블 매핑정보는 @AttributeOverride를 사용하여 재정의할 수 있음
 
 ### 9.5.1 값 타입 컬렉션 사용
@@ -3312,8 +3312,8 @@ List<Address> addressHistory = member.getAddressHistory(); //LAZY
 addressHistory.get(0);
 ```
 - 데이터베이스에 호출하는 SELECT SQL은 다음과 같음
-1. member: 회원만 조회함. 이때 임베디드 값 타입인 homeAddress도 함꼐 조회
-2. member.homeAddress: 1번에서 회원으 ㄹ조회할 때 같이 조회해 둠
+1. member: 회원만 조회함. 이때 임베디드 값 타입인 homeAddress도 함께 조회
+2. member.homeAddress: 1번에서 회원을 조회할 때 같이 조회해 둠
 3. member.favoriteFoods: LAZY로 설정해서 실제 컬렉션을 사용할 때 호출
 4. member.addressHistory: LAZY로 설정해서 실제 컬렉션을 사용할 때 호출
 
@@ -3328,7 +3328,7 @@ member.setHomeAddress(new Address("새로운도시", "신도시1", "123123"));
 //2. 기본값 타입 컬렉션 수정
 Set<String> favoriteFoods = member.getFavoriteFoods();
 favoriteFoods.remove("탕수육");
-favoriteFoods.remove("치킨");
+favoriteFoods.add("치킨");
         
 //3. 임베디드 값 타입 컬렉션 수정
 List<Address> addressHistory = member.getAddressHistory();
@@ -3390,4 +3390,177 @@ addressHistory.add(new Address("새로운 도시", "새로운 주소", "123-456"
 - 엔티티와 값 타입을 혼동해서 엔티티를 값 타입으로 만들면 안됨.
 - 식별자가 필요하고 지속해서 값을 추적하고 구분하고 변경해야 한다면?
   - 그것은 값 타입이 아닌 엔티티임.
+
+# 10 객체지향 쿼리 언어
+- JPA는 복잡한 검색 조건을 사용해서 엔티티 객체를 조회할 수 있는 다양한 쿼리 기술을 지원함.
+- JPQL은 가장 중요한 객체지향 쿼리 언어이다.
+
+## 10.1 객체지향 쿼리 소개
+- em.find() 메소드를 사용하면 식별자로 엔티티 하나를 조회할 수 있음
+  - 이렇게 조회한 엔티티에 객체 그래프 탐색을 사용하면 -> 연관된 엔티티들을 찾을 수 있다.
+
+- 식별자로 조회 EntityManager.find()
+- 객체 그래프 탐색 a.getB(), getC()
+
+- but, 이 기능만으로 애플리케이션을 개발하기는 어려움
+  - 예를 들어 나이가 30살인 회원을 모두 검색하고 싶다면?
+    - 모든 회원 엔티티를 메모리에 올려두고
+    - 애플리케이션에서 30살 이상인 회원을 검색하는 것은 현실성 없음
+    - 결국 -> 데이터는 데이터베이스에 있으므로 SLQ로 필요한 내용을 최대한 걸러서 조회해야 함.
+  - ORM을 사용하면?
+    - 데이터베이스 테이블이 아닌 엔티티 객체를 대상으로 개발.
+    - 검색또한 테이블이 아닌 엔티티 객체를 대상으로 하는 방법이 필요.
+
+- JPQL의 특징
+  - 테이블이 아닌 객체를 대상으로 검색하는 객체지향 쿼리
+  - SLQ을 추상화해서 특정 데이터베이스 SQL에 의존하지 않음
+
+- SQL -> 데이터베이스 테이블을 대상으로 하는 데이터 중심의 쿼리
+- JPQL -> 엔티티 객체를 대상으로 하는 객체지향 쿼리
+- JPQL을 사용하면 JPA는 이 JPQL을 분석 한 다음 -> 적절한 SQL을 만들어 조회함.
+  - 조회한 결과로 엔티티 갤체를 생성해서 반환.
+
+- JPQL = "객체지향 SQL"
+
+#### JPA가 공식 지원하는 기능
+- JPQL(Java Persistence Query Language)
+- Criteria 쿼리 : JPQL을 편하게 작성하도록 도와주는 API, 빌더 클래스 모음
+- 네이티브 SLQ : JPA에서 JPQL 대신 직접 SQL을 사용할 수 있다.
+
+#### JPQ가 공식 지원하는 기능은 아니지만 알아둘 가치가 있는 것들
+- QueryDSL : Criteria 쿼리처럼 JPQL을 편하게 작성하도록 도와주는 빌더 클래스 모음. 비표준 오픈소스 프레임워크
+- JDBC 직접 사용, MyBatis 같은 SQL 매퍼 프레임워크 사용
+
+### 10.1.1 JPQL 소개
+- JPQL은 엔티티 객체를 조회하는 객체지향 쿼리.
+- 문법은 SQL과 비슷하고 ANSI 표준 SQL이 제공하는 기능을 유사하게 지원함.
+- JPQL은 SQL을 추상화해서 특정 데이터베이스에 의존하지 않음
+- 데이터베이스 방언만 변경하면 JPQL을 수정하지 않아도 자연스럽게 데이터베이스를 변경할 수 있음.
+### JPQL은 SQL보다 간결하다!
+
+- 회원 엔티티를 대상으로 JPQL을 사용하는 간단한 예제
+```java
+@Entity(name = "Member")    //name 속성의 기본값은 클래스 명
+public class Memebr {
     
+    @Column(name = "name")
+    private String username;
+    //...
+}
+```
+- JPQL 사용
+```java
+//쿼리 생성
+String jpql = "select m from Member as m where m.username = 'kim'";
+List<Member> resultList = em.createQuery(jpql, Member.class).getResultList();
+```
+- 예제 코드는 회원이름이 kim인 엔티티를 조회함
+- JPQL에서 Member는 엔티티 이름이다.
+- m.username은 테이블 컬럼명이 아닌, 엔티티 객체의 필드명이다.
+- em.createQuery() 메소드에 실행할 JPQL과 반환할 엔티티의 클래스 타입인 Member.class를 넘겨주고
+  getResultList() 메소드를 실행하면 JPA는 JPQL을 SQL로 변환하여 데이터베이스를 조회함.
+
+- 그리고 조회한 결과로 Member 엔티티를 생성하여 반환함
+
+- 실행한 JPQL
+```h2
+select m 
+from Member as m 
+where m.username = 'kim'
+```
+- 실제 실행된 SQL
+```h2
+select
+    member.id as id,
+    member.age as age,
+    member.team_id as team,
+    member.name as name
+from 
+    Member member
+where
+    member.name='kim'
+```
+
+### 10.1.2 Criteria 쿼리 소개
+- Criteria는 JPQL을 생성하는 빌더 클래스
+- Criteria의 장점
+  - 문자가 아닌 query.select(m).where(...)처럼 프로그래밍 코드로 JPQL을 작성할 수 있다는 점
+
+- 문자로 작성한 JPQL보다 코드로 작성한 Criteria의 장점
+- 컴파일 시점에 오류를 발견할 수 있음
+- IDE를 사용하면 코드 자동완성을 지원함
+- 동적 쿼리를 작성하기 편함
+
+- 방금 본 JPQL을 Criteria로 작성하면?
+```h2
+select m from Member as m where m.username = 'kim'
+```
+
+- Criteria 쿼리
+```h2
+//Criteria 사용 준비
+CriteriaBuilder cb = em.getCriteriaBuilder();
+CriteriaQuery<Member> query = cb.createQuery(Member.class);
+
+//루트 클래스(조회를 시작할 클래스)
+Root<Member> m = query.from(Member.class);
+
+//쿼리 생성
+CriteriaQuery<Member> cq =
+    query.select(m).where(cb.equal(m.get("username"), "kim"));
+List<Member> resultList = em.createQuery(cq).getResultList();    
+```
+- 쿼리를 문자가 아닌 코드로 작성한 것을 확인할 수 있음.
+- 아쉬운 점 -> m.get("username") -> 필드 명을 문자로 작성
+  - 이 부분도 문자가 아닌 코드로 작성하고 싶다면?
+    - 메타 모델을 사용!
+
+- 메타 모델 API?
+  - 자바가 제공하는 어노테이션 프로세서 기능을 사용하면 어노테이션을 분석해서 클래스를 생성할 수 있음
+  - JPA는 이 기능을 사용해서 Member 엔티티 클래스로부터 Member_라는 Criteria 전용 클래스를 생성
+    - 이것을 메타 모델이라 함
+
+```java
+//메타 모델 사용 전 -> 사용 후
+m.get("username") -> m.get(Member_.username)
+```
+
+### 10.1.3 QueryDSL 소개
+- QueryDSL도 Criteria처럼 JPQL 빌더 역할을 함
+- QUeryDSL의 장점
+  - 코드 기반이면서 단순하고 사용하기 쉬움
+  - 작성한 코드도 JPQL과 비슷하여 한눈에 들어옴
+
+- QueryDSL로 작성한 코드
+```java
+//준비
+JPAQuery query = new JPAQuery(em);
+QMember member = QMember.member;
+
+//쿼리, 결과조회
+List<Member> members =
+    query.from(member)
+    .where(member.username.eq("kim"))
+    .list(member);
+```
+
+- QueryDSL도 어노테이션 프로세서를 사용해서 쿼리 전용 클래스를 만들어야 함
+- QMember는 Member 엔티티 클래스를 기반으로 생성한 QueryDSL 쿼리 전용 클래스
+
+### 10.1.4 네이티브 SQL 소개
+- JPA가 제공하는 SQL을 직접 사용할 수 있는 기능
+- JPQL을 사용해도 가끔은 특정 데이터베이스에 의존하는 기능을 사용해야 할 때가 있음
+  - 예) 오라클 데이터베이스만 사용하는 CONNECT BY 기능
+  - 특정 데이터베이스에서만 동작하는 SQL 힌트...
+
+- 네이티브 SQL의 단점 -> 특정 데이터베이스에 의존하는 SQL을 작성해야 한다는 것.
+- 데이터베이스를 변경하면 네이티브 SQL도 수정해야 함
+- 네이티브 SQL
+
+```java
+String sql = "SELECT ID, AGE, TEAM_ID, NAME FROM MEMBER WHERE NAME = 'kim'";
+List<Member> resultList = 
+    em.createNativeQuery(sql, Member.class).getResultList();
+```
+- 네이티브 SQL은 em.createNativeQuery()를 사용하면 됨
+- 실행하면 직접 작성한 SQL을 데이터베이스에 전달함
