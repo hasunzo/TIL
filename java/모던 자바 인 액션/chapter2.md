@@ -135,7 +135,7 @@ public class AppleGreenColorPredicate implements ApplePredicate{
     }
 }
 ```
-![사과를%20선택하는%20다양한%20전략.png](img/사과를%20선택하는%20다양한%20전략.png)
+![2-1사과를%20선택하는%20다양한%20전략.png](img/2-1사과를%20선택하는%20다양한%20전략.png)
 - 위 조건에 따라 filter 메서드가 다르게 동작할 것이라고 예상할 수 있다.
 - 이를 전략 디자인 패턴이라고 부른다
 - 전략 디자인 패턴은 각 알고리즘을 캡슐화하는 알고리즘 패밀리를 정의해둔 다음에
@@ -192,3 +192,116 @@ List<Apple> redAndHeavyApples = filterApples(inventory, new AppleRedAndHeavyPred
 - 동작 파라미터의 강점
   - 컬렉션 탐색 로직과 각 항목에 적용할 동작을 분리할 수 있다는 것
 ![2-3filterApples의%20동작을%20파라미터화하고%20다양한%20필터%20전략을%20전달.png](img/2-3filterApples의%20동작을%20파라미터화하고%20다양한%20필터%20전략을%20전달.png)
+
+
+## 2.3 복잡한 과정 간소화
+- filterApples 메서드로 새로운 동작을 전달하기 위해서는
+  - ApplePredicate 인터페이스를 구현하는 여러 클래스를 정의한 다음
+  - 인스턴스화 해야 한다.
+- 상당히 번거로운 작업이며 시간 낭비다.
+```java
+// 무거운 사과 선택
+public class AppleHeavyWeightPredicate implements ApplePredicate{
+    public boolean test(Apple apple) {
+        return apple.getWeight() > 150;
+    }
+}
+
+// 녹색 사과 선택
+public class AppleGreenColorPredicate implements ApplePredicate{
+  public boolean test(Apple apple) {
+    return GREEN.equals(apple.getColor());
+  }
+}
+
+public class FilteringApples {
+  public static void main(String[] args) {
+    List<Apple> inventory = Arrays.asList(new Apple(80, GREEN),
+            new Apple(155, GREEN),
+            new Apple(120, RED));
+    List<Apple> heavyApples =
+            filterApples(inventory, new AppleHeavyWeightPredicate()); // 155그램의 사과 한 개를 포함한다.
+    List<Apple> greenApples =
+            filterApples(inventory, new AppleGreenColorPredicate());  // 녹색 사과 두 개를 포함한다.
+  }
+  public static List<Apple> filterApples(List<Apple> inventory, ApplePredicate p) {
+    List<Apple> result = new ArrayList<>();
+    for (Apple apple : inventory) {
+      if (p.test(apple)) {
+        result.add(apple);
+      }
+    }
+    return result;
+  }
+}
+```
+- 로직과 관련 없는 코드가 많이 추가되었다.
+- 자바는 클래스 선언과 인스턴스화를 동시에 수행할 수 있도록 익명 클래스라는 기법을 제공한다.
+- 익명 클래스를 이용하면 코드의 양을 줄일 수 있다.
+- 하지만 익명 클래스가 모든 것을 해결하는 것은 아니다.
+  - 람다 표현식으로 더 가독성 있는 코드를 구현할 수 있다. (2.3.3절)
+  
+### 2.3.1 익명 클래스
+- 익명 클래스는 자바의 지역 클래스 (블록 내부에 선언된 클래스)와 비슷한 개념이다.
+- 익명 클래스는 말 그대로 이름이 없는 클래스다.
+- 익명 클래스를 이용하면 클래스 선언과 인스턴스화를 동시에 할 수 있다.
+- 즉석에서 필요한 구현을 만들어서 사용할 수 있다.
+
+### 2.3.2 다섯 번째 시도 : 익명 클래스 사용
+- 다음은 익명 클래스를 이용해서 ApplePredicate를 구현하는 객체를 만드는 방법으로 필터링 예제를 다시 구현한 코드다.
+```java
+        // 다섯 번째 시도
+        List<Apple> redApples = filterApples(inventory, new ApplePredicate() {
+            public boolean test(Apple apple) {
+                return RED.equals(apple.getColor());
+            }
+        });
+```
+- filterApples 메서드의 동작을 직접 파라미터화했다.
+- 익명 클래스도 아직 부족한 점이 있다.
+- 여전히 많은 공간을 차지한다.
+- 코드의 장황함은 나쁜 특성이다.
+- 장황한 코드는 구현하고 유지보수하는 데 시간이 오래걸릴 뿐 아니라 읽는 즐거움을 빼앗는다.
+- 한눈에 이해할 수 있는 코드가 좋은 코드
+
+> 코드 조각을 전달하는 과정에서 결국은 객체를 만들고 명시적으로 새로운 동작을 정의하는 메서드를 구현해야 한다는 점은 변하지 않는다.
+
+### 2.3.3 여섯 번째 시도 : 람다 표현식 사용
+- 자바 8의 람다 표현식을 이용해서 위 예제 코드를 다음처럼 간단하게 재구현할 수 있다.
+```java
+        // 여섯 번째 시도 : 드디어 람다
+        List<Apple> result = filterApples(inventory, (Apple apple) -> RED.equals(apple.getColor()));
+```
+- 이전 코드보다 훨씬 간단해졌다!
+![2-4파라미터화요약.png.png](img/2-4파라미터화요약.png)
+  
+
+### 2.3.4 일곱 번째 시도 : 리스트 형식으로 추상화
+```java
+  public interface Predicate<T> {
+      boolean test(T t);
+  }
+  
+  // 형식 파라미터 T 등장
+  public static <T> List<T> filter(List<T> list, Predicate<T> p) {
+    List<T> result = new ArrayList<>();
+    for (T e : list) {
+      if (p.test(e)) {
+        result.add(e);
+      }
+    }
+    return result;
+  }
+```
+- 이제 바나나, 오렌지, 정수, 문자열 등의 리스트에 필터 메서드를 사용할 수 있다.
+
+```java
+        // 일곱 번째 시도 : 리스트 형식으로 추상화
+        List<Apple> redApples2 =
+                filter(inventory, (Apple apple) -> RED.equals(apple.getColor()));
+
+        List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        List<Integer> evenNumbers =
+                filter(numbers, (Integer i) -> i % 2 == 0);
+```
+- 이렇게 해서 유연성과 간결함이라는 두 마리 토끼를 모두 잡을 수 있었다.
