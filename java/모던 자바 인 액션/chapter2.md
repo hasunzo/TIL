@@ -305,3 +305,125 @@ public class FilteringApples {
                 filter(numbers, (Integer i) -> i % 2 == 0);
 ```
 - 이렇게 해서 유연성과 간결함이라는 두 마리 토끼를 모두 잡을 수 있었다.
+
+
+## 2.4 실전 예제
+- 동작 파라미터화 패턴은 동작을 캡슐화한 다음 메서드로 전달해서 메서드의 동작을 파라미터화한다.
+  - (예를 들면 사과의 다양한 프레디케이트)
+- 자바 API의 많은 메서드를 다양한 동작으로 파라미터화할 수 있다.
+- 또한 이들 메서드를 익명 클래스와 자주 사용하기도 한다.
+
+### 2.4.1 Comparator로 정렬하기
+- 컬렉션 정렬은 반복되는 프로그래밍 작업이다.
+- 예를 들어 처음에는 농부가 무게를 기준으로 목록에서 사과를 정렬하고 싶다고 말할 것이다.
+- 하지만 곧 마음을 바꿔 색을 기준으로 사과를 정렬하고 싶어질 수 있다.
+- 따라서 개발자에게는 변화하는 요구사항에 쉽게 대응할 수 있는 다양한 정렬 동작을 수행할 수 있는 코드가 절실하다.
+- 자바 8의 List에는 sort 메서드가 포함되어 있다.
+- 다음과 같은 인터페이스를 갖는 java.util.Comparator 객체를 이용해서 sort의 동작을 파라미터화할 수 있다.
+```java
+// java.util.Comparator
+public interface Comparator<T> {
+    int compare(T o1, T o2);
+}
+```
+- Comparator를 구현해서 sort 메서드의 동작을 다양화할 수 있다
+```java
+        inventory.sort(new Comparator<Apple>() {
+            public int compare(Apple a1, Apple a2) {
+                return a1.getWeight().compareTo(a2.getWeight());
+            }
+        });
+```
+- 농부의 요구사항이 바뀌면 새로운 요구사항에 맞는 Comparator를 만들어 sort 메서드에 전달할 수 있다.
+- 실제 정렬 세부사항은 추상화되어 있으므로 신경 쓸 필요가 없다.
+- 람다 표현식을 이용하면 다음처럼 간단하게 코드를 구현할 수 있다.
+```java
+inventory.sort((Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight()));
+```
+
+### 2.4.2 Runnable로 코드 블록 실행하기
+- 자바 스레드를 이용하면 병렬로 코드 블록을 실행할 수 있다.
+- 어떤 코드를 실행할 것인지를 스레드에게 알려줄 수 있을까?
+- 여러 스레드가 각자 다른 코드를 실행할 수 있다.
+- 나중에 실행할 수 있는 코드를 구현할 방법이 필요하다.
+- 자바 8까지는 Thread 생성자에 객체만을 전달할 수 있었으므로 보통 결과를 반환하지 않는
+void run 메소드를 포함하는 익명 클래스가 Runnable 인터페이스를 구현하도록 하는 것이 일반적인 방법이었다.
+- 자바에서는 Runnable 인터페이스를 이용해서 실행할 코드 블록을 지정할 수 있다.
+- 아래 코드에서 볼 수 있는 것처럼 코드 블록을 실행한 결과는 void다
+```java
+// java.lang.Runnable public interface Runnable {
+void run();
+}
+```
+- Runnable을 이용해서 다양한 동작을 스레드로 실행할 수 있다.
+```java
+        // Runnable로 코드 블록 실행하기
+        Thread t = new Thread(new Runnable() {
+            public void run() {
+                System.out.println("Hello world");
+            }
+        });
+```
+- 자바 8부터 지원하는 람다 표현식을 이용하면 다음처럼 스레드 코드를 구현할 수 있다.
+```java
+Thread t2 = new Thread(() -> System.out.println("Hello world"));
+```
+
+### 2.4.3 GUI 이벤트 처리하기
+- 자바 5부터 지원하는 ExcutorService 인터페이스는 태스크 제출과 실행 과정의 연관성을 끊어준다.
+- ExcutorService를 이용하면 태스크를 스레드 풀로 보내고 결과를 Future로 저장할 수 있다는 점이 스레드와 Runnable을 이용하는 방식과는 다르다.
+- 뒷부분에서 병렬 실행이 자세히 나오니 당장은 Callable 인터페이스를 이용해 결과를 반환하는 태스크를 만든다는 사실만 알아두기
+- 이 방식은 Runnable의 업그레이드 버전이라고 생각할 수 있다.
+```java
+// java.util.concurrent.Callable
+public interface Callable<V> {
+    V call();
+}
+```
+- 아래 코드에서 볼 수 있듯이 실행 서비스에 태스크를 제출해서 위 코드를 활용할 수 있다.
+- 다음 예제는 태스트크를 실행하는 스레드의 이름을 반환한다.
+```java
+        // GUI 이벤트 처리하기
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        Future<String> threadName = executorService.submit(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                return Thread.currentThread().getName();
+            }
+        });
+```
+- 람다를 이용하면 다음처럼 코드를 줄일 수 있다.
+```java
+Future<String> threadName2 = executorService.submit(() -> Thread.currentThread().getName());
+```
+
+### 2.4.4 GUI 이벤트 처리하기
+- 일반적으로 GUI 프로그래밍은 마우스 클릭이나 문자열 위로 이동하는 등의 이벤트에 대응하는 동작을 수행하는 식으로 동작한다.
+- 예를 들어 사용자가 전송 버튼을 클릭하면 팝업을 표시하거나,
+- 동작 로그를 파일로 저장할 수 있다.
+- GUI 프로그래밍에서도 변화에 대응할 수 있는 유연한 코드가 필요하다.
+- 모든 동작에 반응할 수 있어야 하기 때문
+- 자바 FX에서는 serOnAction 메서드에 EventHandler를 전달함으로써 이벤트에 어떻게 반응할지 설정할 수 있다.
+```java
+        Button button = new Button("Send");
+        button.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent event) {
+                label.setText("Sent!!");
+            }
+        });
+```
+- 즉, EventHandler는 setOnAction 메서드의 동작을 파라미터화한다.
+- 람다 표현식으로 다음처럼 구현할 수 있다.
+```java
+        button.setOnAction((ActionEvent event) -> label.setText("Sent!!"));
+```
+
+## 2.5 마치며
+- 동작 파라미터화에서는 메서드 내부적으로 다양한 동작을 수행할 수 있도록 코드를 메서드 인수로 전달한다.
+- 동작 파라미터화를 이용하면 변화하는 요구사항에 더 잘 대응할 수 있는 코드를 구현할 수 있으며
+나중에 엔지니어링 비용을 줄일 수 있다.
+- 코드 전달 기법을 이용하면 동작을 메서드의 인수로 전달할 수 있다.
+  - 하지만 자바 8 이전에는 코드를 지저분하게 구현해야 했다.
+  - 익명 클래스로도 어느 정도 코드를 깔끔하게 만들 수 있지만
+  - 자바 8에서는 인터페이스를 상속받아 여러 클래스를 구현해야 하는 수고를 없앨 수 있는 방법을 제공한다.
+- 자바 API의 많은 메서드는 정렬, 스레드, GUI 처리 등을 포함한 다양한 동작으로 파라미터화할 수 있다.
