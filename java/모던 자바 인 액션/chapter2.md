@@ -135,7 +135,7 @@ public class AppleGreenColorPredicate implements ApplePredicate{
     }
 }
 ```
-![2-1사과를%20선택하는%20다양한%20전략.png](img/2-1사과를%20선택하는%20다양한%20전략.png)
+![img/2-1사과를%20선택하는%20다양한%20전략.png](img/2-1사과를%20선택하는%20다양한%20전략.png)
 - 위 조건에 따라 filter 메서드가 다르게 동작할 것이라고 예상할 수 있다.
 - 이를 전략 디자인 패턴이라고 부른다
 - 전략 디자인 패턴은 각 알고리즘을 캡슐화하는 알고리즘 패밀리를 정의해둔 다음에
@@ -179,7 +179,7 @@ List<Apple> redAndHeavyApples = filterApples(inventory, new AppleRedAndHeavyPred
 ```
 - 우리가 전달할 ApplePredicate 객체에 의해 filterApples 메서드의 동작이 결정됐다.
 - 우리는 filterApples 메서드의 동작을 파라미터화한 것이다.
-![2-2filterApples의%20동작을%20파라미터화하고%20다양한%20필터%20전달하기.png](img/2-2filterApples의%20동작을%20파라미터화하고%20다양한%20필터%20전달하기.png)
+![img/2-2filterApples의%20동작을%20파라미터화하고%20다양한%20필터%20전달하기.png](img/2-2filterApples의%20동작을%20파라미터화하고%20다양한%20필터%20전달하기.png)
 - 위 예제에서 가장 중요한 구현은 test 메서드다
 - filterApples 메서드의 새로운 동작을 정의하는 것이 test 메서드
 - 안타깝게도 메서드는 객체만 인수로 받으므로 test 메서드를 ApplePredicate 객체로 감싸서 전달해야 한다.
@@ -191,7 +191,7 @@ List<Apple> redAndHeavyApples = filterApples(inventory, new AppleRedAndHeavyPred
 ### 한개의 파라미터, 다양한 동작
 - 동작 파라미터의 강점
   - 컬렉션 탐색 로직과 각 항목에 적용할 동작을 분리할 수 있다는 것
-![2-3filterApples의%20동작을%20파라미터화하고%20다양한%20필터%20전략을%20전달.png](img/2-3filterApples의%20동작을%20파라미터화하고%20다양한%20필터%20전략을%20전달.png)
+![img/2-3filterApples의%20동작을%20파라미터화하고%20다양한%20필터%20전략을%20전달.png](img/2-3filterApples의%20동작을%20파라미터화하고%20다양한%20필터%20전략을%20전달.png)
 
 
 ## 2.3 복잡한 과정 간소화
@@ -273,7 +273,7 @@ public class FilteringApples {
         List<Apple> result = filterApples(inventory, (Apple apple) -> RED.equals(apple.getColor()));
 ```
 - 이전 코드보다 훨씬 간단해졌다!
-![2-4파라미터화요약.png.png](img/2-4파라미터화요약.png)
+![img/2-4파라미터화요약.png.png](img/2-4파라미터화요약.png)
   
 
 ### 2.3.4 일곱 번째 시도 : 리스트 형식으로 추상화
