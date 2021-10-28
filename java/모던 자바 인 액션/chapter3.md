@@ -475,13 +475,106 @@ BufferedReaderProcessor p = (BufferedReader br) -> br.readLine();
 ### 3.5.1 형식 검사
 - 람다가 사용되는 콘텍스트를 이용해서 람다의 형식을 추론할 수 있다.
 - 어떤 콘텍스트에서 기대되는 람다 표현식의 형식을 대상 형식이라고 부른다.
-- 람다 표현식을 사용할 떄 실제 어떤 일이 일어나는지 보여주는 예제
+- 람다 표현식을 사용할 때 실제 어떤 일이 일어나는지 보여주는 예제
 ```java
 List<Apple> heavierThan150g =
 filter(inventory, (Apple apple) -> apple.getWeight() > 150);
 ```
 - 다음과 같은 순서로 형식 확인 과정이 진행된다.
 1. filter 메서드의 선언을 확인한다.
-2. filter 메서드는 두 번째 파라미터로 Pr3edicate<Apple> 형식을 기대한다.
+2. filter 메서드는 두 번째 파라미터로 Predicate<Apple> 형식을 기대한다.
 3. Predicate<Apple>은 test라는 한 개의 추상 메서드를 정의하는 함수형 인터페이스다
+4. test 메서드는 Apple을 받아 boolean을 반환하는 함수 디스크립터를 묘사한다.
+5. filter 메서드로 전달된 인수는 이와 같은 요구사항을 만족해야 한다.
+![img/3-4람다표현식의형식검사과정의재구성.png](img/3-4람다표현식의형식검사과정의재구성.png)
+- 위 예제에서 람다 표현식은 Apple을 인수로 받아 boolean을 반환하므로 유요한 코드다.
+- 람다 표현식이 예외를 던질 수 있다면 추상 메서드도 같은 예외를 던질 수 있도록 throws로 선언해야 한다.
 
+### 3.5.2 같은 람다, 다른 함수형 인터페이스
+- 대상 형식이라는 특징 때문에,
+- 같은 람다 표현식이더라도 호환되는
+- 추상 메서드를 가진 다른 함수형 인터페이스로 사용될 수 있다.
+
+> Callable과 PrivilegedAction 인터페이스
+- 인수를 받지 않고 제네릭 형식 T를 반환하는 함수를 정의한다.
+- 따라서 다음 두 할당문은 모두 유효한 코드다.
+```java
+Callable<Integer> c = () -> 42;
+PrivilegedAction<Integer> p = () -> 42;
+```
+- 위 코드에서 첫 번째 할당문의 대상 형식은 Callable<Integer>고, 
+- 두 번째 할당문의 대상 형식은 PrevilegedAction<Integer>다
+
+> Comparator, ToIntBiFuncion, BiFuncion>
+```java
+        // 하나의 람다 표현식을 다양한 함수형 인터페이스에서 사용하기
+        Comparator<Apple> c1 =
+                (Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight());
+        ToIntBiFunction<Apple, Apple> c2 =
+                (Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight());
+        BiFunction<Apple, Apple, Integer> c3 =
+                (Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight());
+```
+
+#### 다이아몬드 연산자
+- 다이아몬드 연산자(<>)로 콘텍스트에 따른 제네릭 형식을 추론할 수 있다.
+- 주어진 클래스 인스턴스 표현식을 두 개 이상의 다양한 콘텍스트에 사용할 수 있다.
+- 이때 인스턴스 표현식의 형식 인수는 콘텍스트에 의해 추론된다.
+```java
+        // 다이아몬드 연산자
+        List<String> listOfStrings = new ArrayList<>();
+        List<Integer> listOfIntegers = new ArrayList<>();
+```
+
+#### 특별한 void 호환 규칙
+- 람다의 바디에 일반 표현식이 있으면 void를 반환하는 함수 디스크립터와 호환된다.
+- (물론 파라미터 리스트도 호환되어야 함)
+```java
+        // 특별한 void 호환 규칙
+        // Predicate는 불리언 반환값을 갖는다.
+        Predicate<String> p = s -> list.add(s);
+        // Consumer는 void 반환값을 갖는다.
+        Consumer<String> b = s -> list.add(s);
+```
+- 위 두 행의 예제에서 List의 add 메서드는 Consumer 콘텍스트(T -> void)가 기대하는 void 대신
+boolean을 반환하지만 유효한 코드다.
+
+#### 정리
+- 지금까지 언제, 어디서 람다 표현식을 사용할 수 있는지 이해했다.
+- 할당문 콘텍스트, 메서드 호출 콘텍스트(파라미터, 반환값), 형변환 콘텍스트 등으로
+- 람다 표현식의 형식을 추론할 수 있다.
+
+#### 퀴즈 ) 형식 검사 문제, 다음 코드를 컴파일할 수 없는 이유는?
+```java
+Object o = () -> { System.out.println("Tricky example") };
+```
+- 람다 표현식의 콘텍스트는 Object(대상 형식)다.
+- 하지만 Object는 함수형 인터페이스가 아니다.
+- 따라서 () -> void 형식의 함수 디스크립터를 갖는 Runnable로 대상 형식을 바꿔서 문제를 해결할 수 있다.
+```java
+Runnable r = () -> { System.out.println("Tricky example") };
+```
+- 같은 함수형 디스크립터를 가진 두 함수형 인터페이스를 갖는 메소드를 오버로딩할 떄 이와 같은 기법을 활용할 수 있다.
+- 어던 메소드의 시그니처가 사용되어야 하는지를 명시적으로 구분하도록 람다를 캐스트할 수 있다.
+- 예를 들어 execute( () -> {} )라는 람다 표현식이 있다면 Runnable과 Action의 함수 디스크립터가 같으므로 누구를 가리키는지가 명확하지 않다.
+```java
+public void execute(Runnable runnable) {
+    runnable.run();
+}
+
+public void execute(Action<T> action) {
+    action.act();
+}
+
+@FunctionlInterface
+interface Action {
+    void act();
+}
+```
+- 하지만 다음처럼 캐스트를 하면 누구를 호출할 것인지가 명확해진다.
+```java
+execute((Action) () -> {});
+```
+
+- 지금까지 대상 형식을 이용해서 람다 표현식을 특정 콘텍스트에 사용할 수 있는지 확인할 수 있었다.
+- 또한 대상 형식으로 람다의 파라미터 형식도 추론할 수 있다.
