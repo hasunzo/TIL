@@ -635,3 +635,50 @@ List<Apple> greenApples =
   - 따라서 자바 구현에서는 원래 변수에 접근을 허용하는 것이 아닌,
   - 자유 지역 변수의 복사본을 제공한다.
   - 따라서 복사본의 값이 바뀌지 않아야 하므로 -> 지역 변수에는 한 번만 값을 할당해야 한다는 제약이 생겼다.
+  
+
+## 3.6 메서드 참조
+- 메서드 참조를 이용하면 기존의 메서드 정의를 재활용해서 람다처럼 전달할 수 있다.
+- 때로는 람다 표현식보다 메서드 참조를 사용하는 것이 더 가독성이 좋으며 자연스러울 수 있다.
+- 메서드 참조와 새로운 자바 8 API를 활용한 정렬 예제
+```java
+// 기존 코드
+inventory.sort((Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight()));
+// 메서드 참조와 java.util.Comparator.comparing을 활용한 코드
+inventory.sort(comparing(Apple::getWeight)); // 첫번째 메서드 참조
+```
+
+### 3.6.1 요약
+- 메서드 참조가 왜 중요한가?
+- 메서드 참조는 특정 메서드만을 호출하는 람다의 축약형이라고 생각할 수 있다.
+- 예를 들어 람다가 '이 메서드를 직접 호출해' 라고 명령한다면 메서드를 어떻게 호출해야 하는지 설명을 참조하기 보다는
+- 메서드명을 직접 참조하는 것이 편리하다.
+- 실제로 메서드 참조를 이용하면 기존 메서드 구현으로 람다 표현식을 만들 수 있다.
+- 이때 명시적으로 메서드명을 참조함으로써 가독성을 높일 수 있다.
+
+> 메서드 참조는 어떻게 활용할까?
+- 메서드명 앞에 구분자(::)를 붙이는 방식으로 메서드 참조를 활용할 수 있다.
+- 예를 들어 Apple::getWeight는 Apple 클래스에 정의된 getWeight의 메서드 참조다.
+- 실제로 메서드를 호출하는 것은 아니므로 괄호는 필요 없음을 기억.
+- 결과적으로 메서드 참조는 람다 표현식 (Apple a) -> a.getWeight()를 축약한 것이다.
+
+|람다|메서드 참조 단축 표현|
+|---|---|
+|(Apple apple) -> apple.getWeight()|Apple::getWeight|
+|() -> Thread.currentThread().dumpStack()|Thread.currentThread()::dumpStack|
+|(str, i) -> str.substring(i)|String::subString|
+|(String s) -> System.out.println(s)|System.out::println|
+|(String s) -> this.isValidName(s)|this::isValidName|
+
+- 메서드 참조를 새로운 기능이 아니라 하나의 메서드를 참조하는 람다를
+편리하게 표현할 수 있는 문법으로 간주할 수 있다.
+- 메서드를 참조를 이용하면 같은 기능을 더 간결하게 구현할 수 있다.
+
+#### 메서드 참조를 만드는 방법
+1. 정적 메서드 참조
+   - 예를 들어 Integer의 parseInt 메서드는 Integer::parseInt로 표현할 수 있다.
+2. 다양한 형식의 인스턴스 메서드 참조
+   - 예를 들어 String의 length 메서드는 String::length로 표현할 수 있다.
+3. 기존 객체의 인스턴스 메서드 참조
+   - 예를 들어 Transaction 객체를 할당받은 expensiveTransaction 지역 변수가 있고
+  Transaction 객체에는 getValue 메서드가 있다면, 이를 expensiveTransaction::getValue라고 표현할 수 있다.
