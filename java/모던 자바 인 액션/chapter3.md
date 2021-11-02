@@ -682,3 +682,37 @@ inventory.sort(comparing(Apple::getWeight)); // 첫번째 메서드 참조
 3. 기존 객체의 인스턴스 메서드 참조
    - 예를 들어 Transaction 객체를 할당받은 expensiveTransaction 지역 변수가 있고
   Transaction 객체에는 getValue 메서드가 있다면, 이를 expensiveTransaction::getValue라고 표현할 수 있다.
+
+- String::length 같은 두 번째 유형의 메서드 참조를 이용해서 람다 표현식의 파라미터로 전달할 수 있다.
+  - (String s) -> s.toUpperCase() 라는 람다 표현식을 String::toUpperCase로 줄여서 표현할 수 있다.
+- 반면 세 번째 유형의 메서드 참조는 람다 표현식에서 현존하는 외부 객체의 메서드를 호출할 때 사용한다.
+  - () -> expensiveTransaction.getValue() 라는 람다 표현식을 expensiveTransaction::getValue로 줄여서 표현할 수 있다.
+
+#### 람다 표현식을 메서드 참조로 줄여서 표현하는 단축 규칙
+- 세 번째 유형의 메서드 참조는 비공개 헬퍼 메서드를 정의한 상황에서 유용하게 활용할 수 있다.
+- isValidName이라는 헬퍼 메서드를 정의했다고 가정
+```java
+private boolean isValidName(String string) {
+    return Character.isUpperCase(String.charAt(0));
+}
+```
+- 이제 Predicate<String>를 필요로 하는 적당한 상황에서 메서드 참조를 할 수 있다.
+```java
+filter(words, this::isValidName)
+```
+
+![img/3-5람다표현식을%20메서드참조로표현.png](img/3-5람다표현식을%20메서드참조로표현.png)
+
+- Comparator의 함수 디스크립터와 호환되는 람다 표현식 시그니처도 있다.
+- 위에서 설명한 기법을 이용하면 람다 표현식을 메서드 참조를 사용해서 다음처럼 줄일 수 있다.
+```java
+// 기존
+List<String> str = Arrays.asList("a", "b", "A", "B");
+str.sort((s1, s2) -> s1.compareToIgnoreCase(s2));
+
+// 메서드 참조를 이용해서 줄이기
+List<String> str = Arrays.asList("a", "b", "A", "B");
+str.sort(String::compareToIgnoreCase);
+```
+- 컴파일러는 람다 표현식의 형식을 검사하던 방식과 비슷한 과정으로 메서드 참조가 주어진 함수형 인터페이스와 호환하는지 확인한다.
+- 즉, 메서드 참조는 콘텍스트의 형식과 일치해야 한다.
