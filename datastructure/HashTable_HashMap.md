@@ -22,3 +22,7 @@
 - Java8 HashMap 보조 해시 함수는 상위 16비트 값을 XOR 연산하는 형태의 보조 해시 함수를 사용한다.
   Java 7에 비해 단순한 형태로 바뀌었는데 이는 Java 8에서 해시 충돌이 많이 발생하게 되면 Linked List 대신 Tree를 사용하므로
   성능 문제가 완화되었고 Java 7까지 사용했던 보조 해시 함수의 효과가 크지 않았기 때문이다.
+
+- [https://bcho.tistory.com/1072](https://bcho.tistory.com/1072)
+- [https://d2.naver.com/helloworld/831311](https://d2.naver.com/helloworld/831311)
+
