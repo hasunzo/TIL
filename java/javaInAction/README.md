@@ -1,0 +1,23 @@
+# 모던 자바 인 액션
+> [모던 자바 인 액션](http://www.yes24.com/Product/Goods/77125987) 을 읽고 정리합니다.
+- [1장 자바 8, 9, 10, 11 : 무슨 일이 일어나고 있는가?](https://github.com/hasunzo/TIL/blob/main/java/javaInAction/chapter1.md)
+- [2장 동작 파라미터화 코드 전달하기](https://github.com/hasunzo/TIL/blob/main/java/javaInAction/chapter2.md)
+- [3장 람다 표현식](https://github.com/hasunzo/TIL/blob/main/java/javaInAction/chapter3.md)
+- 4장 스트림 소개
+- 5장 스트림 활용
+- 6장 스트림으로 데이터 수집
+- 7장 병렬 데이터 처리와 성능
+- 8장 컬렉션 API 개선
+- 9장 리팩터링, 테스팅, 디버깅
+- 10장 람다를 이용한 도메인 전용 언어
+- 11장 null 대신 Optional 클래스
+- 12장 새로운 날짜와 시간 API
+- 13장 디폴트 메서드
+- 14장 자바 모듈 시스템
+- 15장 CompletableFuture와 리액티브 프로그래밍 컨셉의 기초
+- 16장 CompletableFuture : 안정적 비동기 프로그래밍
+- 17장 리액티브 프로그래밍
+- 18장 함수형 관점으로 생각하기
+- 19장 함수형 프로그래밍 기법
+- 20장 OOP와 FP의 조화 : 자바와 스칼라 비교
+- 21장 결론 그리고 자바의 미래
