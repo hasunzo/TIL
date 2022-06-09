@@ -234,160 +234,118 @@ String oneLine = processFile((BufferedReader br) -> br.readLine());
 String twoLines = processFile((BufferedReader br) -> br.readLine() + br.readLine());
 ```
 
-## 3.4 함수형 인터페이스 사용
-- 3.2.1절 '함수형 인터페이스'에서 살펴본 것처럼 함수형 인터페이스는 오직 하나의 추상 메서드를 지정한다.
-- 함수형 인터페이스의 추상 메서드는 람다 표현식의 시그니처를 묘사한다.
-- 함수형 인터페이스의 추상 메서드 시그니처를 '함수 디스크립터' 라고 한다.
-- 다양한 람다 표현식을 사용하려면 공통의 함수 디스크립터를 기술하는 함수형 인터페이스 집합이 필요하다.
-- 3.2절에서 살펴본 것처럼 이미 자바 API는 Comparable, Runnable, Callable 등의 다양한 함수형 인터페이스를 포함하고 있다.
-- 자바 8 라이브러리 설계자들은 java.util.function 패키지로 여러 가지 새로운 함수형 인터페이스를 제공한다.
-- 이 절에서는 Predicate, Consumer, Function 인터페이스를 설명한다.
+## 4. 함수형 인터페이스 사용
 
-### 3.4.1 Predicate
-- java.util.function.Predicate<T> 인터페이스는 test라는 추상 메서드를 정의하며,
-- test는 제네릭 형식 T의 객체를 인수로 받아 불리언을 반환한다.
-- 우리가 만들었던 인터페이스와 같은 형태인데 따로 정의할 필요 없이 바로 사용할 수 있다는 점이 특징이다.
-- T 형식의 객체를 사용하는 불리언 표현식이 필요한 상황에서 Predicate 인터페이스를 사용할 수 있다.
-- 다음 예제처럼 String 객체를 인수로 받는 람다를 정의할 수 있다.
+- 함수형 인터페이스는 오직 하나의 추상 메서드를 지정
+- 함수형 인터페이스의 추상 메서드는 람다 표현식의 시그니처 묘사
+- 함수형 인터페이스의 추상 메서드 시그니처를 `함수 디스크립터`라고 함
+
+### 다양한 함수형 인터페이스들
+
+### Predicate<T>
+
+- T → boolean
+- test 추상 메서드
+
 ```java
-  @FuncionalInterface
-  public interface Predicate<T> {
-      boolean test(T t);
-  }
-
-  public static <T> List<T> filter(List<T> list, Predicate<T> p) {
-    List<T> result = new ArrayList<>();
-    for (T t : list) {
-      if (p.test(t)) {
-        result.add(t);
-      }
-    }
-    return result;
-  }
-
-  public static void main(String[] args) {
-    List<String> listOfString = new ArrayList<>();
-    listOfString.add("");
-    listOfString.add("a");
-    listOfString.add("b");
-    listOfString.add("c");
-    listOfString.add("d");
-    listOfString.add("");
-
-    Predicate<String> nonEmptyStringPredicate = (String s) -> !s.isEmpty();
-    List<String> nonEmpty = filter(listOfString, nonEmptyStringPredicate);
-
-    for (String str : nonEmpty) {
-      System.out.println(str);
-    }
-  }
-  
-  // 결과
-  > Task :PredicateEx.main()
-  a
-  b
-  c
-  d
+@FunctionalInterface
+public interface Predicate<T> {
+    boolean test(T t);
+}
+public <T> List<T> filter(List<T> list, Predicate<T> p) {
+		List<T> result = new ArrayList<>();
+		for (T t : list) {
+				if (predicate.test(t)) {
+						result.add(t);
+				}
+		}
+		return result;
+}
+Predicate<String> nonEmptyStringPredicate = (String s) -> !s.isEmpty();
+List<String> nonEmpty = filter(listOfStrings, nonEmptyStringPredicate);
 ```
-- Predicate 인터페이스의 자바독 명세를 보면 and나 or 같은 메서드도 있음을 알 수 있다.
-- 자세한 내용은 3.8절 '람다 표현식을 조합할 수 있는 유용한 메서드'에서 살펴볼 것이다.
 
-### 3.4.2 Consumer
-- java.util.function.Consumer<T> 인터페이스는 제네릭 형식 T 객체를 받아서 void를 반환하는 accept라는 추상 메서드를 정의한다.
-- T 형식의 객체를 인수로 받아서 어떤 동작을 수행하고 싶을 때 Consumer 인터페이스를 사용할 수 있다.
-- 예를 들어 Integer 리스트를 인수로 받아서 각 항목에 어떤 동작을 수행하는 forEach 메서드를 정의할 때 Consumer를 활용할 수 있다.
-- 다음은 forEach와 람다를 이용해서 리스트의 모든 항목을 출력하는 예제다.
+### Consumer<T>
+
+- T → void
+- accept 추상 메서드
 
 ```java
-  @FunctionalInterface
-  public interface Consumer<T> {
+@FunctionalInterface
+public interface Consumer<T> {
     void accept(T t);
-  }
-
-  public static <T> void forEach(List<T> list, Consumer<T> c) {
-    for (T t : list) {
-      c.accept(t);
-    }
-  }
-  
-  public static void main(String[] args) {
-    forEach(Arrays.asList(1, 2, 3, 4, 5),
-            (Integer i) -> System.out.println(i)
-    );  // Consumer의 accept 메서드를 구현하는 람다
-  }
-
-
+}
+public <T> void forEach(List<T> list, Consumer<T> c) {
+		for(T t: list) {
+				t.accept(t);
+		}
+}
+forEach(
+			Arrays.asList(1, 2, 3, 4, 5),
+			(Integer i) -> System.out.println(i)
+);
 ```
 
-### 3.4.3 Function
-- java.util.function.Function<T, R> 인터페이스는 제네릭 형식 T를 인수로 받아서
-- 제네릭 형식 R 객체를 반환하는 추상 메서드 apply를 정의한다.
-- 입력을 출력으로 매핑하는 람다를 정의할 때 Function 인터페이스를 활용할 수 있다.
-- (예를 들면 사과의 무게 정보를 추출하거나 문자열을 길이와 매핑)
-- 다음은 String 리스트를 인수로 받아 각 String의 길이를 포함하는 Integer 리스트로 변환하는 map 메서드를 정의하는 예제다.
+### Function<T, R>
+
+- T → R
+- apply 추상 메서드
+
 ```java
-  @FunctionalInterface
-  public interface Function<T, R> {
+@FunctionalInterface
+public interface Function<T, R> {
     R apply(T t);
-  }
+}
+public <T, R> List<R> map(List<T> list, Function<T, R> f {
+		List<R> result = new ArrayList<>();
+		for(T t: list) {
+				result.add(f.apply(t));
+		}
+		return result;
+}
 
-  public static  <T, R> List<R> map(List<T> list, Function<T, R> f) {
-    List<R> result = new ArrayList<>();
-    for (T t : list) {
-      result.add(f.apply(t));
-    }
-    return result;
-  }
-
-  public static void main(String[] args) {
-    // [7, 2, 6]
-    List<Integer> l = map(
-            Arrays.asList("lamdas", "in", "action"),
-            (String s) -> s.length()
-    );  // Function의 apply 메서드를 구현하는 람다
-  }
+// [7, 2, 6]
+List<Integer> l = map(
+				Arrays.asList("lambdas", "in", "action"),
+				(String s) -> s.length()
+)
 ```
 
-#### 기본형 특화
-- 지금까지 세 개의 제네릭 함수형 인터페이스 Predicate<T>, Consumer<T>, Function<T, R>을 살펴봤다.
-- 하지만 특화된 형식의 함수형 인터페이스도 있다.
-- 자바의 모든 형식은 참조형 (예를 들면 Byte, Integer, Object, List) 아니면
-- 기본형 (예를 들면 int, double, byte, char)에 해당한다.
-- 하지만 제네릭 파라미터 (예를 들면 Consumer<T>의 T)에는 참조형만 사용할 수 있다.
-- 제네릭의 내부 구현 때문에 어쩔 수 없는 일이다.
+### 기본형 특화
 
-> 자바에서는 기본형은 참조형으로 변환하는 기능을 제공한다.
-- 이 기능을 박싱(boxing)이라고 한다.
-- 참조형을 기본형으로 반환하는 반대 동작은 언박싱(unboxing)이라고 한다.
-- 또한 프로그래머가 편리하게 코드를 구현할 수 있도록 박싱과 언박싱이 자동으로 이루어지는 오토박싱(autoboxing)이라는 기능도 제공한다.
-- 예를 들어 다음은 유효한 코드다. (int가 Integer로 박싱됨).
+- 자바의 형식
+  - 참조형 reference type
+    - Byte, Integer, String, Object, List …
+  - 기본형 primitive type
+    - int, double, byte, char …
+- 제네릭 파라미터에는 참조형만 사용할 수 있음
+- 제네릭의 내부 구현 문제 때문
+  - 스칼라 같은 언어에 존재하는 문제
+  - 20장 에서 자세하게 살펴봄
+- 변환하기 제공
+  - 기본형 → 참조형
+    - boxing
+  - 참조형 → 기본형
+    - unboxing
+  - boxing, unboxing 자동
+    - autoboxing
+- 문제
+  - 변환 과정에서의 비용 소모
+  - 박싱한 값은 기본형을 감싸는 래퍼임.
+  - 힙에 저장 됨 → 메모리 소비
+  - 기본형 가져올 때 메모리 탐색 과정 필요
+- 오토박싱 피하기
+
 ```java
-        // 오토박싱
-        List<Integer> list = new ArrayList<>();
-        for (int i = 300; i < 400; i++) {
-            list.add(i);
-        }
+public interface IntPredicate {
+		boolean test(int t);
+}
 ```
-- 하지만 이런 변환 과정은 비용이 소모된다.
-- 박싱한 값은 기본형은 감싸는 래퍼며 힙에 저장된다.
-- 따라서 박싱한 값은 메모리를 더 소비하며 기본형을 가져올 때도 메모리를 탐색하는 과정이 필요하다.
-- 자바 8에서는 기본형을 입출력으로 사용하는 상황에서 오토박싱 동작을 피할 수 있도록 특별한 버전의 함수형 인터페이스를 제공한다.
-- 예를 들어 아래 예제에서 IntPredicate는 1000이라는 값을 박싱하지 않지만, Predicate<Integer>는 1000이라는 값을 Integer 객체로 박싱한다.
-```java
-    @FunctionalInterface
-    public interface IntPredicate {
-        boolean test(int t);
-    }
 
-    // 오토박싱 동작을 피할 수 있도록 특별한 버전의 함수형 인터페이스 제공
-    IntPredicate evenNumbers = (int i) -> i % 2 == 0;
-    evenNumbers.test(1000);     // 참 (박싱 없음)
+- 일반적으로 특정 형식을 입력받는 함수형 인터페이스의 이름 앞에는 형식명이 붙음
+  - DoublePredicate, IntConsumer, LongBinaryOperator, IntFunction
+  - ToIntFunction<T>, IntToDoubleFunction
 
-    Predicate<Integer> oddNumbers = (Integer i) -> i % 2 != 0;
-    oddNumbers.test(1000);      // 거짓 (박싱)
-```
-- 일반적으로 특정 형식을 입력으로 받는 함수형 인터페이스의 이름 앞에는 DoublePredicate, IntConsumer, LongBinaryOperator, IntFunction처럼 형식명이 붙는다.
-- Function 인터페이스는 ToIntFunction<T>, IntToDoubleFunction 등의 다양한 출력 형식 파라미터를 제공한다.
 #### 자바 API에서 제공하는 대표적인 함수형 인터페이스와 함수 디스크립터
 ![img/표3-2자바8에추가된함수형인터페이스.png](img/표3-2자바8에추가된함수형인터페이스.png)
 - 해당 표는 자바에서 제공하는 함수형 인터페이스 중 일부에 불과하다는 사실을 기억하자.
