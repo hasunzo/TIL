@@ -346,16 +346,30 @@ public interface IntPredicate {
   - DoublePredicate, IntConsumer, LongBinaryOperator, IntFunction
   - ToIntFunction<T>, IntToDoubleFunction
 
-#### 자바 API에서 제공하는 대표적인 함수형 인터페이스와 함수 디스크립터
-![img/표3-2자바8에추가된함수형인터페이스.png](img/표3-2자바8에추가된함수형인터페이스.png)
-- 해당 표는 자바에서 제공하는 함수형 인터페이스 중 일부에 불과하다는 사실을 기억하자.
-- 필요하다면 우리가 직접 함수형 인터페이스를 만들 수 있다.
-- (T, U) -> R 같은 표기법으로 함수 디스크립터를 설명할 수 있음을 기억하자.
-- 표에서 왼쪽 코드는 인수 형식을 가리킨다.
-- 예제의 표기법은 제네릭 형식 T와 U를 인수로 받으며 R을 반환하는 함수다.
+### 자바 8에 추가된 함수형 인터페이스
 
-#### 람다와 함수형 인터페이스 예제
-![img/표3-3람다와함수형인터페이스예제.png](img/표3-3람다와함수형인터페이스예제.png)
+| 함수형 인터페이스 | 함수 디스크립터 | 기본형 특화 |
+| --- | --- | --- |
+| Predicate<T> | T → boolean | IntPredicate, LongPredicate, DoublePredicate |
+| Consumer<T> | T → void | IntConsumer, LongConsumer, DoubleConsumer |
+| Function<T, R> | T → R | IntFunction<R>, IntToDoubleFunction, IntToLongFunction, LongFunction<R>, LongToDoubleFunction, LongToIntFunction, DoubleFunction<R>, DoubleToIntFunction, DoubleToLongFunction, ToIntFunction<T>, ToDoubleFunction<T>, ToLongFunction<T> |
+| Supplier<T> | () → T | BooleanSupplier, IntSupplier, LongSupplier, DoubleSupplier |
+| UnaryOperator<T> | T → T | IntUnaryOperator, LongUnaryOperator, DoubleUnaryOperator |
+| BinaryOperator<T> | (T, T) → T | IntBinaryOperator, LongBinaryOperator, DoubleBinaryOperator |
+| BiPredicate<L, R> | (T, U) → boolean |  |
+| BiConsumer<T, U> | (T, U) → void | ObjIntConsumer<T>, ObjLongConsumer<T>, ObjDoubleConsumer<T> |
+| BiFunction<T, U, R> | (T, U) → R | ToIntBiFunction<T, U>, ToLongBiFunction<T, U>, ToDoubleBiFunction<T, U> |
+
+### 람다와 함수형 인터페이스 예제
+
+| 사용 사례 | 람다 예제 | 대응하는 함수형 인터페이스 |
+| --- | --- | --- |
+| 불리언 표현 | (List<String> list) → list.isEmpty() | Predicate<List<String>> |
+| 객체 생성 | () → new Apple(10) | Supplier<Apple> |
+| 객체에서 소비 | (Apple a) → System.out.println(a.getWeight()) | Consumer<Apple> |
+| 객체에서 선택/추출 | (String s) → s.length() | Function<String, Integer> 또는 ToIntFunction<String> |
+| 두 값 조합 | (int a, int b) → a * b | IntBinaryOperator |
+| 두 객체 비교 | (Apple a1, Apple a2) → a1.getWeight().compareTo(a2.getWeight()) | Comparator<Apple> 또는 BiFunction<Apple, Apple, Integer> 또는 ToIntBiFunction<Apple, Apple> |
 
 #### 예외, 람다, 함수형 인터페이스의 관계
 - 함수형 인터페이스는 확인된 예외를 던지는 동작을 허용하지 않는다.
