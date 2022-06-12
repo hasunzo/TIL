@@ -370,110 +370,97 @@ public interface IntPredicate {
 | 객체에서 선택/추출 | (String s) → s.length() | Function<String, Integer> 또는 ToIntFunction<String> |
 | 두 값 조합 | (int a, int b) → a * b | IntBinaryOperator |
 | 두 객체 비교 | (Apple a1, Apple a2) → a1.getWeight().compareTo(a2.getWeight()) | Comparator<Apple> 또는 BiFunction<Apple, Apple, Integer> 또는 ToIntBiFunction<Apple, Apple> |
+### 예외, 람다, 함수형 인터페이스의 관계
 
-#### 예외, 람다, 함수형 인터페이스의 관계
-- 함수형 인터페이스는 확인된 예외를 던지는 동작을 허용하지 않는다.
-- 즉, 예외를 던지는 람다 표현식을 만들려면 확인된 예외를 선언하는 함수형 인터페이스를 직접 정의하거나
-- 람다를 try/catch 블록으로 감싸야 한다.
-- 예를 들어 3.3절에서 등장했던 IOException을 명시적으로 선언하는 함수형 인터페이스 BufferedReaderProcessor를 살펴보자
+- 함수형 인터페이스는 확인된 예외를 던지는 동작을 허용하지 않음
+- 예외를 던지는 람다 표현식을 만들려면?
+  - 1) 예외를 선언하는 함수형 인터페이스 직접 정의
+  - 2) 람다를 try / catch 블록으로 감싸기
+- 1번 예제) IOException을 명시적으로 선언하는 BufferedReaderProcessor
+
 ```java
 @FunctionalInterface
 public interface BufferedReaderProcessor {
-    String process(BufferedReader b) throws IOException;
+	String process(BufferedReader b) throws IOException;
 }
 BufferedReaderProcessor p = (BufferedReader br) -> br.readLine();
 ```
-- 그러나 우리는 Function<T, R> 형식의 함수형 인터페이스를 기대하는 API를 사용하고 있으며
-- 직접 함수형 인터페이스를 만들기 어려운 상황이다.
-- 이런 상황에서는 다음 예제처럼 명시적으로 확인된 예외를 잡을 수 있다.
+
+- 2번 예제) 람다를 try / catch 블록으로 감싸기
+
 ```java
-        // 예외를 던지는 람다 표현식 만들기
-        Function<BufferedReader, String> f = (BufferedReader b) -> {
-            try {
-                return b.readLine();
-            }
-            catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        };
+Function<BufferedReader, String> f = (BufferedReader b) -> {
+	try {
+		return b.readLine();
+	} catch (IOException e) {
+		throw new RuntimeException();
+	}
+};
 ```
-- 지금까지 람다를 만드는 방법과 람다를 사용하는 방법을 살펴봤다.
-- 이번에는 컴파일러가 람다의 형식을 어떻게 확인하는지,
-- 피해야 할 사항은 무엇인지 
-  - (예를 들면 람다 표현식에서 바디 안에 있는 지역 변수를 참조하지 않아야 한다든가 void 호환 람다는 멀리해야 한다)
-- 등 더 깊이 있는 내용을 살펴본다.
 
+## 5. 형식 검사, 형식 추론, 제약
 
-## 3.5 형식 검사, 형식 추론, 제약
-- 람다 표현식 자체에는 람다가 어떤 함수형 인터페이스를 구현하는지의 정보가 포함되어 있지 않다.
-- 따라서 람다 표현식을 더 제대로 이해하려면 람다의 실제 형식을 파악해야 한다.
+- 앞에서, 람다로 함수형 인터페이스의 인스턴스를 만들 수 있다고 언급함
+- 람다 표현식 자체에는 람다가 어떤 함수형 인터페이스를 구현하는지의 정보가 포함되어 있지 않음
+- 따라서, 람다 표현식을 제대로 이해하려면 `람다의 실제 형식`을 파악해야 함.
 
-### 3.5.1 형식 검사
-- 람다가 사용되는 콘텍스트를 이용해서 람다의 형식을 추론할 수 있다.
-- 어떤 콘텍스트에서 기대되는 람다 표현식의 형식을 대상 형식이라고 부른다.
-- 람다 표현식을 사용할 때 실제 어떤 일이 일어나는지 보여주는 예제
+### 형식 검사
+
+- 람다가 사용되는 콘텍스트를 이용해서 람다의 형식(type)을 추론할 수 있음.
+- 어떤 콘텍스트에서 기대되는 람다 표현식의 형식을 `대상 형식`(target type)이라고 부름.
+- **람다 표현식을 사용할 때 실제 어떤 일이 일어날까?**
+
+### 형식 확인 과정 알아보기
+
 ```java
 List<Apple> heavierThan150g =
-filter(inventory, (Apple apple) -> apple.getWeight() > 150);
+	filter(inventory, (Apple apple) -> apple.getWeight() > 150);
 ```
-- 다음과 같은 순서로 형식 확인 과정이 진행된다.
-1. filter 메서드의 선언을 확인한다.
-2. filter 메서드는 두 번째 파라미터로 Predicate<Apple> 형식을 기대한다.
-3. Predicate<Apple>은 test라는 한 개의 추상 메서드를 정의하는 함수형 인터페이스다
-4. test 메서드는 Apple을 받아 boolean을 반환하는 함수 디스크립터를 묘사한다.
-5. filter 메서드로 전달된 인수는 이와 같은 요구사항을 만족해야 한다.
+
+1. filter 메서드의 선언 확인
+2. filter 메서드는 두 번쨰 파라미터로 Predicate<Apple> 형식(대상 형식)을 기대함
+3. Predicate<Apple>은 test라는 한 개의 추상 메서드를 정의하는 함수형 인터페이스임
+4. test 메서드는 Apple을 받아 boolean을 반환하는 함수 디스크립터 묘사
+5. filter 메서드로 전달된 인수는 이와 같은 요구사항을 만족해야 함.
+
+### 형식 확인 과정을 그림으로 알아보기
 ![img/3-4람다표현식의형식검사과정의재구성.png](img/3-4람다표현식의형식검사과정의재구성.png)
-- 위 예제에서 람다 표현식은 Apple을 인수로 받아 boolean을 반환하므로 유요한 코드다.
-- 람다 표현식이 예외를 던질 수 있다면 추상 메서드도 같은 예외를 던질 수 있도록 throws로 선언해야 한다.
 
-### 3.5.2 같은 람다, 다른 함수형 인터페이스
-- 대상 형식이라는 특징 때문에,
-- 같은 람다 표현식이더라도 호환되는
-- 추상 메서드를 가진 다른 함수형 인터페이스로 사용될 수 있다.
+### 같은 람다, 다른 함수형 인터페이스
 
-> Callable과 PrivilegedAction 인터페이스
-- 인수를 받지 않고 제네릭 형식 T를 반환하는 함수를 정의한다.
-- 따라서 다음 두 할당문은 모두 유효한 코드다.
+- 대상 형식이라는 특징 때문에 같은 람다 표현식이더라도 호환되는 추상 메서드를 가진 다른 함수형 인터페이스로 사용될 수 있다.
+
 ```java
 Callable<Integer> c = () -> 42;
 PrivilegedAction<Integer> p = () -> 42;
 ```
-- 위 코드에서 첫 번째 할당문의 대상 형식은 Callable<Integer>고, 
-- 두 번째 할당문의 대상 형식은 PrevilegedAction<Integer>다
 
-> Comparator, ToIntBiFuncion, BiFuncion>
+![img/1.png](img/1.png)
+
+- 실제로 Intellij 자동완성 기능을 통해 살펴보면 () → T 형식의 다양한 함수형 인터페이스를 확인할 수 있음.
+
+### 다이아몬드 연산자
+
+- 이미 자바 7에서도 다이아몬드 연산자(<>)로 콘텍스트에 따른 제네릭 형식을 추론할 수 있음
+- 어진 클래스 인스턴스 표현식을 두 개 이상의 다양한 콘텍스트에 사용 가능
+- 이때 인스턴스 표현식의 형식 인수는 콘텍스에 의해 추론됨
+
 ```java
-        // 하나의 람다 표현식을 다양한 함수형 인터페이스에서 사용하기
-        Comparator<Apple> c1 =
-                (Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight());
-        ToIntBiFunction<Apple, Apple> c2 =
-                (Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight());
-        BiFunction<Apple, Apple, Integer> c3 =
-                (Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight());
+List<String> listOfStrings = new ArrayList<>();
+List<Integer> listOfIntegers = new ArrayList<>();
 ```
 
-#### 다이아몬드 연산자
-- 다이아몬드 연산자(<>)로 콘텍스트에 따른 제네릭 형식을 추론할 수 있다.
-- 주어진 클래스 인스턴스 표현식을 두 개 이상의 다양한 콘텍스트에 사용할 수 있다.
-- 이때 인스턴스 표현식의 형식 인수는 콘텍스트에 의해 추론된다.
-```java
-        // 다이아몬드 연산자
-        List<String> listOfStrings = new ArrayList<>();
-        List<Integer> listOfIntegers = new ArrayList<>();
-```
+### 특별한 void 호환 규칙
 
-#### 특별한 void 호환 규칙
-- 람다의 바디에 일반 표현식이 있으면 void를 반환하는 함수 디스크립터와 호환된다.
-- (물론 파라미터 리스트도 호환되어야 함)
+- 람다의 바디에 일반 표현식이 있으면 void 반환 함수 디스크립터와 호환됨
+
 ```java
-        // 특별한 void 호환 규칙
-        // Predicate는 불리언 반환값을 갖는다.
-        Predicate<String> p = s -> list.add(s);
-        // Consumer는 void 반환값을 갖는다.
-        Consumer<String> b = s -> list.add(s);
+// Predicate는 불리언 반환값을 갖는다. (T -> boolean)
+Predicate<String> predicate = s -> list.add(s);
+
+// Consumer는 void 반환값을 갖는다. (T -> void)
+Consumer<String> consumer = s -> list.add(s);
 ```
-- 위 두 행의 예제에서 List의 add 메서드는 Consumer 콘텍스트(T -> void)가 기대하는 void 대신
-boolean을 반환하지만 유효한 코드다.
 
 #### 정리
 - 지금까지 언제, 어디서 람다 표현식을 사용할 수 있는지 이해했다.
