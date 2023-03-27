@@ -118,3 +118,71 @@
 - 이 패턴은 클라이언트에게 따로 데이터베이스에 쓰였다는 확인을 전송할 필요가 없을 때만 사용 가능함
 - 하지만 SQS 대기열에 쓰기 작업이 일어났다는 것만으로도 결국 데이터베이스에 요청이 쓰일 테니 일종의 확인을 한 셈
 - 분리나 급격히 증가한 로드 혹은 시간초과 등의 문제에서 신속한 스케일링이 필요한 경우에 SQS 대기열을 기억하자
+
+
+## SNS
+- 메시지 하나를 여러 수신자에게 보낼때 직접 통합(Direct integration)을 쓸 수 있는데
+- 구매 서비스 애플리케이션에서 이메일 알림을 보내고 사기 탐지 서비스, 배송 서비스 그리고 SQS 대기열에도 메시지를 보낼 수 있음
+- 하지만 수신 서비스를 새로 추가할 때마다 통합을 생성하고 작성해야 하므로 번거로울 수 있다
+- 대신 Pub/Sub - 게시/구독 이라는 것을 사용하자
+- Amazon SNS에서 event producer는 한 SNS topic에만 메시지를 보냄
+- event receivers는 해당 topic 관련한 SNS 알림을 받으려는 사람
+- 따라서 SNS topic 구독자는 해당 topic 으로 전송된 모든 메시지를 받게 됨
+- 그리고 메시지를 필터링하는 기능을 사용하는 경우에도 메시지를 받을 수 있음
+- 주제별 최대 구독자 수는 1,200만 이상
+- 계정당 가질 수 있는 주제 수는 최대 10만 
+- SNS에서 직접 이메일을 보낼 수도 있고
+- SMS 및 모바일 알림을 보낼 수도 있다
+- 지정된 HTTP 또는 HTTPS 엔드 포인트로 직접 데이터를 보낼 수도 있다
+- SNS 는 SQS와 같은 특정 AWS 서비스와 통합하여 메시지를 대기열로 직접 보낼 수도 있고
+- 메시지를 수신한 후 함수가 코드를 수행하도록 Lambda에 보내거나 Firehose 를 통해 데이터를 Amazon S3나 Redshift로 보낼 수도 있다
+- SNS는 다양한 AWS 서비스에서 데이터를 수신하기도 함
+- CloudWatch 경보, AutoScaling 그룹 알림, CloudFormation (State Chages), Budgets, S3 버킷, DMS, Lambda, DynamoDB, RDS ...
+- AWS에서 알림이 발생하면 이러한 서비스가 지정된 SNS 주제로 알림을 보냄
+- SNS How to publish
+  - Topic Public (using the SDK)
+    - Create a topic
+    - Create a subscription (or many)
+    - Publish to the topic
+  - Direct Publish (for mobile apps SDK)
+    - Create a platform application
+    - Create a platform endpoint
+    - Publish to the platform endpoint
+    - 수신 가능 대상: Google GCM, Apple APNS, Amazon ADM...
+### SNS + SQS: Fan Out
+- 메시지를 여러 SQS 대기열에 보내고 싶은데 모든 SQS 대기열에 개별적으로 메시지를 보내면 문제가 생길 수 있다.
+  - 애플리케이션이 중간에 비정상적으로 종료
+  - 전달에 실패
+  - SQS 대기열이 더 추가
+- 이런 경우 Fan Out 패턴을 사용
+- 일단 SNS 주제에 메시지를 전송한 후 원하는 수의 SQS 대기열이 이 SNS 주제를 구독
+- 이 대기열들은 구독자로서 SNS로 들어오는 모든 메시지를 받음
+- 이는 완전히 분리된 모델이며 데이터도 손실되지 않음
+- SQS로 작업을 다시 시도할 수도 있고 데이터 지속성, 지연 처리도 수행 가능
+- 이런 방식으로 SNS 주제를 구독하도록 더 많은 SQS 대기열을 추가할 수도 있음
+- Fan Out 패턴을 사용하려면 SQS 액세스 정책에서 SNS 주제가 SQS 대기열에 쓰기 작업을 할 수 있도록 허용해야 함
+- 리전 간 전달도 가능
+- 한 리전의 SNS 주제에서 다른 리전의 SQS 대기열로 메시지를 보낼 수 있음
+- Fan Out 패턴 활용
+  - 여러 대기열에 동일한 S3 이벤트 알림을 보내고 싶을 때
+    - S3 객체를 생성하여 S3 버킷에 이벤트 형성
+    - 이 이벤트를 SNS 주제로 전송한 후 Fan Out 패턴으로 많은 SQS 대기열이 SNS 주제를 구독하도록 함
+    - 물론 다른 유형의 애플리케이션, 이메일, Lambda 함수 등도 구독할 수 있음
+    - 이런 식으로 팬아웃 덕분에 Amazon S3에서 발생하는 이벤트의 메시지가 여러 다른 목적지에 도달할 수 있게 함
+  - 다른 아키텍처에서는 Kinesis Data Firehose (KDF)를 통해 SNS에서 Amazon S3로 직접 데이터를 전송할 수 있음
+    - SNS를 KDF에 직접 연결하여 구매 서비스에서 데이터를 SNS 주제로 전송할 수 있음
+    - 그런 다음 KDF에서 해당 정보를 수신하고 해당 KDF에서 Amazon S3 버킷으로 전달하거나 특정한 KDF 목적지로 어디든 전달할 수 있음
+    - 이런 방식으로 SNS 주제의 메시지를 계속 이어가도록 확장할 수 있다
+  - FIFO 주제에 적용
+    - 생산자가 메시지 1, 2, 3, 4를 보내고 구독자는 1, 2, 3, 4의 순서로 메시지를 수신하는 SQS FIFO 대기열이 됨
+    - 이 SNS FIFO는 SQS FIFO와 유사함
+    - 메시지 그룹 ID에 따라 순서를 매기고 중복 제거 ID를 활용하거나 내용을 비교하여 중복 데이터를 제거
+    - SQS FIFO 대기열을 FIFO SNS 주제의 구독자로 설정
+    - 필요한 이유는?
+      - SQS FIFO를 활용하여 팬아웃을 수행하려면 팬아웃, 순서, 중복 제거가 필요함
+      - 구매 서비스가 데이터를 SNS FIFO 주제로 전달하고 두 개의 SQS FIFO 대기열로 팬아웃한 후,
+      - 사기 탐지 서비스와 배송 서비스가 이 FIFO 대기열에서 데이터를 읽어 들임
+  - 메시지 필터링
+    - 메시지를 필터링하는 데 사용되는 JSON 정책
+    - 주문에서 발주된 주문만 골라서 SQS 대기열을 만들고자 한다면
+    - SQS 대기열이 SNS 주제를 구독하게 하고 JSON으로 필터링 정책을 적용
