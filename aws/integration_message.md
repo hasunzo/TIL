@@ -249,4 +249,46 @@
   - Kinesis에서 VPC 엔드포인트를 사용할 수 있음
     - Kinesis에 인터넷을 거치지 않고 프라이빗 서브넷의 인스턴스에서 직접 손쉽게 접근할 수 있음
   - 모든 API 요청은 CloudTrail로 감시할 수 있음
-
+### Kinesis Data Firehose
+- 생산자에서 데이터를 가져올 수 있는 유용한 서비스이며, 생산자는 Kinesis Data Stream에서 본 무엇이든 될 수 있습니다.
+- 애플리케이션, 클라이언트, SDK, KPL, Kinesis Agent, Kinesis Data Stream, 아마존 CloudWatch, AWS IoT 모두 Kinsis Data Firehose로 생산할 수 있음
+- 데이터를 전송하면 Kinesis Data Firehose는 람다 기능을 활용해 데이터를 변환할지 선택할 수 있는데 이는 옵션임
+- 일단 데이터를 변환하면 배치로 수신처에 쓸 수 있음
+- Kinesis Data Firehose는 소스에서 데이터를 가져오는데 주로 Kinesis Data Stream이고 수신처에 데이터를 쓸 수 있음
+- Kinesis Data Firehose 의 수신처 종류
+  - AWS 수신처
+    - 아마존 S3, 아마존 레드시프트
+    - 여기에 데이터를 쓸 때는 먼저 아마존 S3에 데이터를 쓰면 Kinesis Data Firehose 가 복사 명령어를 내보냄
+    - 이 복사 명령어가 아마존 S3의 데이터를 아마존 레드시프트로 복사
+    - 아마존 ElasticSearch
+  - 써드 파티 파트너 수신처
+    - 데이터독, 스플렁크, 뉴렐릭, 몽고DB 등..
+  - 자체 API
+    - HTTP 엔드포인트가 있는 자체 API를 보유하고 있다면 Kinesis Data Firehose를 통해 커스텀 수신처로 데이터를 보낼 수 있음
+- 데이터가 이러한 수신처로 전송되고 나면 우리에겐 두 가지 옵션이 있음
+  - 모든 데이터를 백업으로 S3 버킷에 보내기
+  - 수신처에 쓰이지 못한 데이터를 실패 S3 버킷에 보냄
+- 정리
+  - 관리가 필요하지 않으며 자동으로 용량 크기가 조정되고 서버리스이므로 관리할 서버가 없음
+  - 레드시프트와 아마존 S3, ElasticSearch와 같은 AWS 수신처로 데이터를 보낼 수 있고 스플렁크, 몽고DB, 데이터독, 뉴렐릭 등 써드 파티 파트너로 보낼 수 있음
+  - 어떤 HTTP 엔드포인트든 커스텀 수신처로도 보낼 수 있음
+  - Kinesis Data Firehose를 통하는 데이터에 대해서만 비용을 지불하면 됨
+  - 근 실시간으로 이루어짐
+    - Kinesis Data Firehose에서 수신처로 데이터를 배치로 쓰기 때문
+    - 전체 배치가 아닌 최소 60초 지연시간이 발생하거나 데이터를 수신처에 보내는 데 한 번에 적어도 1MB의 데이터가 있을 때까지 기다려야 함
+    - 그렇기에 실시간 서비스가 아니라 실시간에 가까운 서비스
+    - 여러 데이터 형식과 데이터 전환, 변환, 압축을 지원하며, 필요하면 람다를 활용해 자체적인 데이터 변환도 쓸 수 있음
+- 시험
+  - Kinesis Data Stream을 사용할 경우, Kinesis Data Firehose를 사용해야 한느 경우를 구분해야 하는 문제
+  - Kinesis Data Stream
+    - Kinesis Data Stream은 데이터를 대규모로 수집할 때 쓰는 스트리밍 서비스고 생산자와 소비자에 대해 커스텀 코드를 쓸 수 있음
+    - 실시간으로 이루어지며 약 70ms 혹은 200ms 정도의 지연시간이 발생함.
+    - 용량을 직접 조정할 수 있어 샤드 분할이나 샤드 병합을 통해 용량이나 처리량을 늘릴 수 있음
+    - 제공한 용량만큼 비용을 지불, 데이터는 1일에서 365일간 저장
+    - 여러 소비자가 같은 스트림에서 읽어 올 수 있고 반복 기능도 지원
+  - Kinesis Data Firehose
+    - 수집 서비스로 데이터를 아마존 S3나 레드시프트, ElasticSearch 써드 파티 파트너나 자체 HTTP로 스트리밍해줌
+    - 완전 관리되며 서버리스이고 근 실시간으로 이뤄짐(near real-time)
+    - 자동으로 용량 조정되어 관련해 걱정할 필요 없음
+    - Kinsis Data Firehose를 통과하는 데이터에 대해서만 비용을 지불하면 됨
+    - 데이터 스토리지가 없어 Kinesis Data Firehose의 데이터를 반복하는 기능은 지원되지 ㅇ낳음
