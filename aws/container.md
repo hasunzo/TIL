@@ -108,3 +108,55 @@
 - 새로운 사례로는 EFS와 ECS를 함께 사용해서 다중 AZ가 공유하는 컨테이너 영구 스토리지가 있음
 - 하나 알아 두어야 할 것
   - Amazon S3는 ECS 태스크에 파일 시스템으로 마운트될 수 없다
+## Amazon ECS - 오토 스케일링
+- 태스크 수를 자동으로 늘리거나 줄일 수 있음
+- AWS의 Auto Scaling 서비스를 사용하면 세 개의 지표에 대해 확장이 가능함
+  - CPU 사용률
+  - RAM
+  - ALB 관련 지표인 타겟당 요청 수
+- 스케일링 종류
+  - Target Tracking(대상 추적)
+  - Step Scaling(단계)
+  - Scheduled Scaling(예약)
+- EC2 시작 유형이라면 태스크 레벨에서의 ECS 서비스 확장이 EC2 인스턴스 클러스터의 확장과 다르다는 사실을 기억할 것
+- 따라서 EC2 오토 스케일링이 필요하지 않다면 (백엔드에 EC2 인스턴스가 없다면) Fargate를 사용하는 것이 서비스 오토 스케일링에 도움이 됨
+### EC2 오토 스케일링
+- Auto Scaling Group Scaling(ASG)
+  - CPU 사용률에 따라 ASG를 확장한다고 하면 CPU 사용률이 급등할 때 EC2 인스턴스를 추가
+- ECS Cluster Capacity Provider 클러스터 용량 공급자
+  - 새 태스크를 실행할 용량이 부족하면 자동으로 ASG를 확장
+  - Capacity Provider는 오토 스케일링 그룹과 함께 사용되며 RAM이나 CPU가 모자랄 때 EC2 인스턴스를 추가함
+- ASG, 클러스터 용량 공급자 중 선택한다면?
+  - EC2 시작 유형의 경우 클러스터 용량 공급자 사용할 것
+## Amazon ECS - 솔루션 아키텍트
+### ECS 태스크
+- EventBridge 로 작동
+- Amazon ECS 클러스터가 있고 이와 함께 Fargate와 S3 버킷이 있는 예시
+  - 사용자가 S3 버킷에 객체 업로드
+  - S3가 Amazon EventBridge와 통합 -> 이벤트 모두 보내기 가능
+  - Amazon EventBridge 에는 ECS 태스크를 실행하는 규칙을 만들 수 있음
+  - 그럼 ECS 태스크가 생성되고 관련 ECS 태스크 역할이 주어짐
+  - 태스크는 객체를 받아 처리하고 Amazon DynamoDB에 결과를 보냄 (ECS 태스크 역할이 결합된 덕)
+  - 도커 컨테이너를 이용해 S3 버킷으로부터 이미지나 객체를 처리하는 서버리스 아키텍처 완성
+- EventBridge Schedule(일정) 예시
+  - Fargate와 EventBridge를 사용하는 ECS 클러스터가 있다고 가정
+  - 한 시간마다 트리거되는 규칙의 일정을 만들면 Fargate에서 ECS 태스크를 실행
+  - 즉, 한 시간마다 Fargate 클러스터에 새 태스크가 생성
+  - 태스크에는 자유롭게 Amazon S3에 접근 가능한 ECS 태스크 역할 등을 생성하면
+  - 태스크, 도커 컨테이너, 프로그램이 Amazon S3의 파일에 대해 한 시간마다 배치(Batch) 처리를 하게 됨
+  - 이때 아키텍처는 서버리스
+- SQS Queue 예시
+  - ECS의 서비스에 두 개의 태스크가 있고 SQS 대기열(Queue)에 메시지를 전송했다고 가정
+  - 서비스 자체적으로 SQS 대기열로부터 메시지를 가져와서(pull) 처리
+  - 여기에 ECS 서비스 오토 스케일링을 활성화하면 SQS 대기열에 메시지가 많아질수록 ECS 서비스에 태스크가 많아짐
+
+# Amazon ECR
+- Elastic Container Registry
+- AWS에 도커 이미지를 저장하고 관리하는 데 사용
+- 계정에 한해 이미지를 비공개로 저장하는 private 방식과
+- public 저장소를 사용해 Amazon ECR Public Gallery에 게시하는 방법이 있음
+- ECR은 Amazon ECS와 완전히 통합되어 있고 이미지는 백그라운드에서 Amazon S3에 저장됨
+- ECR 저장소에 여러 도커 이미지가 있는데 ECS 클러스터의 EC2 인스턴스에 이미지를 끌어오기 위해서는 EC2 인스턴스에 IAM 역할을 지정하면 됨
+- ECR에 대한 모든 접근은 IAM이 보호하고 있음
+- 이미지의 취약점 스캐닝, 버저닝 태그 및 수명 주기 확인을 지원
+- 도커 이미지를 저장할 때는 ECR 기억하기
