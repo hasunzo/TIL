@@ -160,3 +160,42 @@
 - ECR에 대한 모든 접근은 IAM이 보호하고 있음
 - 이미지의 취약점 스캐닝, 버저닝 태그 및 수명 주기 확인을 지원
 - 도커 이미지를 저장할 때는 ECR 기억하기
+
+# Amazon EKS
+- Amazon Elastic Kubernetes Service
+- AWS에 관리형 Kubernetes 클러스터를 실행할 수 있는 서비스
+## Kubernetes란?
+- 오픈 소스 시스템으로 Docker로 컨테이너화한 애플리케이션의 자동 배포, 확장, 관리를 지원함
+- 컨테이너를 실행한다는 목적은 ECS와 비슷하지만 사용하는 API가 다름
+- ECS는 오픈 소스가 아닌 반면 Kubernetes 오픈 소스이고 여러 클라우드 제공자가 사용하므로 표준화를 기대할 수 있음
+## EKS의 실행 모드
+1. EC2 시작 모드
+- EC2 인스턴스에서처럼 작업자 모드를 배포할 때 사용
+2. Fargate 모드
+- EKS 클러스터에 서버리스 컨테이너를 배포할 때 사용
+## EKS 사용 사례
+- 회사가 온프레미스나 클라우드에서 Kubernetes나 Kubernetes API를 사용 중일 때
+  - Kubernetes 클러스터를 관리하기 위해 Amazon EKS를 사용함
+- 클라우드 또는 컨테이너 간 마이그레이션을 실행하는 경우
+  - Kubernetes는 클라우드 애그노스틱으로 Azure, Google Cloud 등 모든 클라우드에서 지원되기 떄문
+## EKS의 여러 노드 유형
+- 관리형 노드 그룹
+  - AWS로 노드, 즉 EC2 인스턴스를 생성하고 관리함
+  - 노드는 EKS 서비스로 관리되는 오토 스케일링 그룹의 일부
+  - 온디맨드 인스턴스와 스팟 인스턴스를 지원함
+- 자체 관리형 노드
+  - 사용자 지정 사항이 많고 제어 대상이 많은 경우 직접 노드를 생성하고 EKS 클러스터에 등록한 다음 ASG의 일부로 관리해야 함
+  - 사전 빌드된 AMI인 Amazon EKS 최적화 AMI를 사용하면 시간을 절약할 수 있음
+  - 온디맨드 인스턴스와 스팟 인스턴스를 지원함
+- AWS Fargate
+  - 노드를 원치 않을 때 사용
+  - 유지 관리도 필요 없고 노드를 관리하지 않아도 됨
+  - Amazon EKS에서 컨테이너만 실행하면 됨
+## EKS Data Volumes
+- EKS 클러스터에 데이터 볼륨을 연결하려면 EKS 클러스터에 스토리지 클래스 매니페스트를 지정해야 함
+- 컨테이너 스토리지 인터페이스(CSI)라는 규격 드라이버를 활용 (시험)
+- 지원
+  - Amazon EBS
+  - Amazon EFS (works with Fargate)
+  - Amazon FSx for Lustre
+  - Amazon FSx for NetApp ONTAP
